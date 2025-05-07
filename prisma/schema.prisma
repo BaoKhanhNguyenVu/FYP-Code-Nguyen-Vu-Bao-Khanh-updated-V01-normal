@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id      String      @id
+  email   String   @unique
+  username   String?   @unique
+  displayName   String?
+  bio    String?
+  location    String?
+  job    String?
+  website    String?
+  img    String?
+  cover    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  // RELATIONS
+  posts   Post[]
+
+  likes Like[]
+
+  saves SavedPosts[]
+
+  followers Follow[] @relation("UserFollowers")
+
+  followings Follow[] @relation("UserFollowings")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  desc      String?   @db.VarChar(255)
+  img       String?
+  imgHeight Int?
+  video     String?
+  isSensitive Boolean @default(false)
+  
+  // RELATIONS
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+
+  rePostId Int?
+  rePost Post? @relation("RePosts", fields: [rePostId], references: [id])
+  rePosts Post[] @relation("RePosts")
+
+  parentPostId Int?
+  parentPost Post? @relation("PostComments", fields: [parentPostId], references: [id])
+  comments Post[] @relation("PostComments")
+
+  likes Like[]
+
+  saves SavedPosts[]
+}
+
+model Like{
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // RELATIONS
+  userId String
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model SavedPosts{
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // RELATIONS
+  userId String
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model Follow {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // RELATIONS
+  followerId String
+  followingId String
+
+  follower User @relation("UserFollowers", fields: [followerId], references: [id])
+  following User @relation("UserFollowings", fields: [followingId], references: [id])
+}
+
+// Các câu lệnh chạy Prisma
+// npx prisma migrate dev --name init (tạo migration mới với tên init, các tên khác thì tùy ý bỏ vào trong dấu ngoặc kép đôi)
+// npx prisma migrate resolve --rolled-back name_folder_migration (đánh dấu migration đã rollback)
+// npx prisma migrate resolve --applied name_folder_migration (đánh dấu migration đã chạy)
+// npx prisma migrate deploy (deploy migration đã được đánh dấu để áp dụng thay đổi từ schema.prisma lên database)
+
+// npx prisma migrate reset (reset database, xóa hết dữ liệu)
+// npx prisma db push (đẩy schema lên database)
+// npx prisma db pull (lấy schema mới nhất áp dụng vào database)
+// npx prisma db seed (chạy file seed.ts để tạo dữ liệu mẫu, cần phải tạo file seed.ts với code logic để tạo dữ liệu mẫu)
+// npx prisma format (format lại file schema.prisma)
+// npx prisma studio (mở giao diện quản lý database, mặc định là localhost:5555)
+// npx prisma generate (tạo lại Prisma Client)
